@@ -1,0 +1,315 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+	<title></title>
+	<style type="text/css">
+		.code{
+			background:url(code_bg.jpg);
+			font-family:Arial;
+			font-style:italic;
+			color:blue;
+			font-size:30px;
+			border:0;
+			padding:2px 3px;
+			letter-spacing:3px;
+			font-weight:bolder;             
+			float:left;            
+			cursor:pointer;
+			width:150px;
+			height:60px;
+			line-height:60px;
+			text-align:center;
+			vertical-align:middle;
+		}
+		a{
+			text-decoration:none;
+			font-size:12px;
+			color:#288bc4;
+		}
+		a:hover{
+			text-decoration:underline;
+		}
+		#canvas{
+		    cursor: pointer;
+		}
+	</style>
+	<script language="javascript" type="text/javascript">
+		var code;
+
+		function createCode() {
+			code = "";
+			var codeLength = 6; //验证码的长度
+			var checkCode = document.getElementById("checkCode");
+			var codeChars = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+				'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+				'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'); //所有候选组成验证码的字符，当然也可以用中文的
+			for (var i = 0; i < codeLength; i++) {
+				var charNum = Math.floor(Math.random() * 52);
+				code += codeChars[charNum];
+			}
+			if (checkCode) {
+				checkCode.className = "code";
+				checkCode.innerHTML = code;
+			}
+		}
+
+		function validateCode() {
+			var inputCode = document.getElementById("inputCode").value;
+			if (inputCode.length <= 0) {
+				alert("请输入验证码！");
+			} else if (inputCode.toUpperCase() != code.toUpperCase()) {
+				alert("验证码输入有误！");
+				createCode();
+			} else {
+				alert("验证码正确！");
+			}
+		}
+
+
+		/*生成4位随机数*/
+		function rand() {
+			var str = "abcdefghijklmnopqrstuvwxyz0123456789";
+			var arr = str.split("");
+			var validate = "";
+			var ranNum;
+			for (var i = 0; i < 4; i++) {
+				ranNum = Math.floor(Math.random() * 36); //随机数在[0,35]之间
+				validate += arr[ranNum];
+			}
+			return validate;
+		}
+
+		/*干扰线的随机x坐标值*/
+		function lineX() {
+			var ranLineX = Math.floor(Math.random() * 90);
+			return ranLineX;
+		}
+
+		/*干扰线的随机y坐标值*/
+		function lineY() {
+			var ranLineY = Math.floor(Math.random() * 40);
+			return ranLineY;
+		}
+
+		function clickChange() {
+			var mycanvas = document.getElementById('canvas');
+			var cxt = mycanvas.getContext('2d');
+			cxt.fillStyle = '#000';
+			cxt.fillRect(0, 0, 90, 40);
+
+			/*生成干扰线20条*/
+			for (var j = 0; j < 20; j++) {
+				cxt.strokeStyle = '#fff';
+				cxt.beginPath(); //若省略beginPath，则每点击一次验证码会累积干扰线的条数
+				cxt.moveTo(lineX(), lineY());
+				cxt.lineTo(lineX(), lineY());
+				cxt.lineWidth = 0.5;
+				cxt.closePath();
+				cxt.stroke();
+			}
+
+			cxt.fillStyle = 'red';
+			cxt.font = 'bold 20px Arial';
+			cxt.fillText(rand(), 25, 25); //把rand()生成的随机数文本填充到canvas中      
+		}
+
+		clickChange();
+
+		/*点击验证码更换*/
+		mycanvas.onclick = function(e) {
+			e.preventDefault(); //阻止鼠标点击发生默认的行为
+			clickChange();
+		};
+    </script>
+</head>
+<body onload="createCode()">
+	<form id="form1" runat="server" onsubmit="validateCode()">
+		<div>
+			<table border="0" cellspacing="5" cellpadding="5" >
+				<tr>
+					<td></td><td> <div class="code" id="checkCode" onclick="createCode()" ></div></td>
+					<td><a  href="#" onclick="createCode()">看不清换一张</a></td>
+				</tr>
+				<tr>
+					<td>验证码：</td><td><input  style="float:left;" type="text"   id="inputCode" /></td><td>请输入验证码</td>
+				</tr>
+				<tr><td></td><td><input id="Button1"  onclick="validateCode();" type="button" value="确定" /></td><td></td>
+				</tr>
+			</table>
+		</div>
+	</form>
+
+	<canvas id="canvas" width='90' height='40'>您的浏览器不支持canvas，请换个浏览器试试~</canvas>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+
+<body>
+	<form>
+		<div>
+		<div class="code" id="checkCode" onclick="createCode()" ></div><a  href="#" onclick="createCode()">看不清换一张</a>
+		<input  style="float:left;" type="text"   id="inputCode" />
+		<input id="Button1"  onclick="validateCode();" type="button" value="确定" />
+		</div>
+	</form>
+
+	<canvas id="canvas" width='90' height='40'>您的浏览器不支持canvas，请换个浏览器试试~</canvas>
+	
+
+	<script>
+	function GVerify(options) { //创建一个图形验证码对象，接收options对象为参数
+		this.options = { //默认options参数值
+			id: "", //容器Id
+			canvasId: "verifyCanvas", //canvas的ID
+			width: "100", //默认canvas宽度
+			height: "30", //默认canvas高度
+			type: "blend", //图形验证码默认类型blend:数字字母混合类型、number:纯数字、letter:纯字母
+			code: ""
+		}
+
+		if (Object.prototype.toString.call(options) == "[object Object]") { //判断传入参数类型
+			for (var i in options) { //根据传入的参数，修改默认参数值
+				this.options[i] = options[i];
+			}
+		} else {
+			this.options.id = options;
+		}
+
+		this.options.numArr = "0,1,2,3,4,5,6,7,8,9".split(",");
+		this.options.letterArr = getAllLetter();
+
+		this._init();
+		this.refresh();
+	}
+
+	GVerify.prototype = {
+		/**版本号**/
+		version: '1.0.0',
+
+		/**初始化方法**/
+		_init: function() {
+			var con = document.getElementById(this.options.id);
+			var canvas = document.createElement("canvas");
+			/*this.options.width = con.offsetWidth > 0 ? con.offsetWidth : "100";
+			this.options.height = con.offsetHeight > 0 ? con.offsetHeight : "30";*/
+			canvas.id = this.options.canvasId;
+			canvas.width = this.options.width;
+			canvas.height = this.options.height;
+			canvas.style.cursor = "pointer";
+			canvas.innerHTML = "您的浏览器版本不支持canvas";
+			con.appendChild(canvas);
+			var parent = this;
+			canvas.onclick = function() {
+				parent.refresh();
+			}
+		},
+
+		/**生成验证码**/
+		refresh: function() {
+			this.options.code = '';
+			var canvas = document.getElementById(this.options.canvasId);
+			if (canvas.getContext) {
+				var ctx = canvas.getContext('2d');
+			}
+			ctx.textBaseline = "middle";
+
+			ctx.fillStyle = randomColor(180, 240);
+			ctx.fillRect(0, 0, this.options.width, this.options.height);
+
+			if (this.options.type == "blend") { //判断验证码类型
+				var txtArr = this.options.numArr.concat(this.options.letterArr);
+			} else if (this.options.type == "number") {
+				var txtArr = this.options.numArr;
+			} else {
+				var txtArr = this.options.letterArr;
+			}
+
+			for (var i = 1; i <= 4; i++) {
+				var txt = txtArr[randomNum(0, txtArr.length)];
+				this.options.code += txt;
+				ctx.font = '20px SimHei';
+				//ctx.font = randomNum(this.options.height/2, this.options.height) + 'px SimHei'; //随机生成字体大小
+				ctx.fillStyle = randomColor(50, 160); //随机生成字体颜色
+				/* ctx.shadowOffsetX = randomNum(-3, 3);
+				ctx.shadowOffsetY = randomNum(-3, 3);*/
+				ctx.shadowBlur = randomNum(-3, 3);
+				ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+				var x = this.options.width / 5 * i;
+				var y = this.options.height / 2;
+				var deg = randomNum(-30, 30);
+				/**设置旋转角度和坐标原点**/
+				ctx.translate(x, y);
+				ctx.rotate(deg * Math.PI / 180);
+				ctx.fillText(txt, 0, 0);
+				/**恢复旋转角度和坐标原点**/
+				ctx.rotate(-deg * Math.PI / 180);
+				ctx.translate(-x, -y);
+			}
+			/**绘制干扰线**/
+			for (var i = 0; i < 4; i++) {
+				ctx.strokeStyle = randomColor(40, 180);
+				ctx.beginPath();
+				ctx.moveTo(randomNum(0, this.options.width / 2), randomNum(0, this.options.height / 2));
+				ctx.lineTo(randomNum(0, this.options.width / 2), randomNum(0, this.options.height));
+				ctx.stroke();
+			}
+			/**绘制干扰点**/
+			for (var i = 0; i < this.options.width / 4; i++) {
+				ctx.fillStyle = randomColor(0, 255);
+				ctx.beginPath();
+				ctx.arc(randomNum(0, this.options.width), randomNum(0, this.options.height), 1, 0, 2 * Math.PI);
+				ctx.fill();
+			}
+		},
+
+		/**验证验证码**/
+		validate: function(code) {
+			var verifyCode = code.toLowerCase();
+			var v_code = this.options.code.toLowerCase();
+			if (verifyCode == v_code) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		/**生成字母数组**/
+		getAllLetter: function() {
+			var letterStr = "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z";
+			return letterStr.split(",");
+		}
+		/**生成一个随机数**/
+		randomNum: function(min, max) {
+			return Math.floor(Math.random() * (max - min) + min);
+		}
+		/**生成一个随机色**/
+		randomColor: function(min, max) {
+			var r = randomNum(min, max);
+			var g = randomNum(min, max);
+			var b = randomNum(min, max);
+			return "rgb(" + r + "," + g + "," + b + ")";
+		}
+
+		return new GVerify(id);
+	}
+
+	// 调用方法
+	var verifyCode = new GVerify("canvas");
+
+	// 验证方法
+	function validateCode() {
+		if (verifyCode.validate(inputCode)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	</script>
+</body>
+</html>

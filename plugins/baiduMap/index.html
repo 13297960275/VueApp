@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Hello, World</title>
+    <style type="text/css">
+        html {
+            height: 100%
+        }
+        body {
+            height: 100%;
+            margin: 0px;
+            padding: 0px
+        }
+        #container {
+            height: 100%
+        }
+    </style>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=uMRkveLIihGFR5NZZLn1Qw5sOTVHGpm0xx"></script>
+    <!-- <script type="text/javascript" src="http://api.map.baidu.com/api?key=&v=1.1&services=true"></script> -->
+</head>
+<body>
+    <p> 
+        纬度：<input name="lng" type="text" id="lng" style="width:200px;" value="114.432007"/>  
+        经度：<input name="lat" type="text" id="lat" style="width:200px;" value="30.461509"/>  
+        标注点所在区域：<input name="address" type="text" id="address" style="width:200px;"/>  
+    </p>  
+    <div id="container" style="margin: 0 auto; width: 80%; height: 80%; border: 3px solid gray;"></div>
+    <script type="text/javascript">
+        // http://lbsyun.baidu.com/jsdemo.htm#a1_2
+
+        var map = null;
+        var initialFunc = function() {
+            map = new BMap.Map("container"); // 创建地图实例  
+            var point = new BMap.Point(114.430333, 30.459583); // 创建点坐标  
+            map.centerAndZoom(point, 15); // 初始化地图，设置中心点坐标和地图级别（最大为19，最小为0；最小到3就已经模糊了）
+
+/*            提供的控件 可以使用Map.addControl()方法向地图添加控件。
+    控件              类名                  简介
+抽象基类      Control             所有控件均继承此类的方法、属性。通过此类您可实现自定义控件
+缩略地图      OverviewMapControl  默认位于地图右下方，是一个可折叠的缩略地图
+比例尺        ScaleControl        默认位于地图左下方，显示地图的比例关系
+地图类型      MapTypeControl      默认位于地图右上方
+版权          CopyrightControl    默认位于地图左下方
+定位          GeolocationControl  针对移动端开发，默认位于地图左下方
+平移缩放控件  NavigationControl   PC端默认位于地图左上方，它包含控制地图的平移和缩放的功能。移动端提供缩放控件，默认位于地图右下方*/
+
+            // 设置控件偏移
+            var opts = {offset: new BMap.Size(15, 50)}
+
+            map.addControl(new BMap.NavigationControl(opts));//缩放平移控件
+            map.addControl(new BMap.OverviewMapControl());//缩略图
+            map.addControl(new BMap.ScaleControl());    //比例尺
+            map.addControl(new BMap.MapTypeControl()); //地图类型
+            map.addControl(new BMap.CopyrightControl());//版权控件
+            // map.addControl(new BMap.GeolocationControl());//定位控件
+
+            // 设置地图样式
+            // 其中，mapStyle为MapStyle类，该类使用对象字面量形式表示，不可实例化。style用于设置底图颜色样式。
+            // map.setMapStyle({style:'midnight'});  
+            map.setMapStyle({styleJson:styleJson});
+
+            map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+
+            map.setCurrentCity("武汉"); // 仅当设置城市信息时，MapTypeControl的切换功能才能可用
+
+            // 自定义控件
+            map.addControl(new myTest.ZoomControlX());
+
+            map.addEventListener("click", function(e) {
+                console.log(e.point.lng + ", " + e.point.lat);
+
+                // document.getElementById("lng").innerHTML=e.point.lng;
+                // document.getElementById("lat").innerHTML=e.point.lat;
+
+                console.log("您点击了地图。");
+            });
+
+            // 拖动地图后地图中心的经纬度信息
+            map.addEventListener("dragend", function() {
+                var center = map.getCenter();
+                console.log("地图中心点变更为：" + center.lng + ", " + center.lat);
+            });
+
+            var zoomendFunc = function() {
+                console.log("地图缩放至：" + this.getZoom() + "级");
+                // 移除监听事件
+                map.removeEventListener("zoomend", zoomendFunc);
+            };
+            map.addEventListener("zoomend", zoomendFunc);
+
+            // 标注功能：拖动、打标注
+            myTest.markerTest(map);
+
+            // 浏览器定位
+            myTest.geolocation(map);
+        };
+
+        var myTest = {
+            geolocation: function(map) {
+                //关于状态码
+                //BMAP_STATUS_SUCCESS    检索成功。对应数值“0”。
+                //BMAP_STATUS_CITY_LIST    城市列表。对应数值“1”。
+                //BMAP_STATUS_UNKNOWN_LOCATION    位置结果未知。对应数值“2”。
+                //BMAP_STATUS_UNKNOWN_ROUTE    导航结果未知。对应数值“3”。
+                //BMAP_STATUS_INVALID_KEY    非法密钥。对应数值“4”。
+                //BMAP_STATUS_INVALID_REQUEST    非法请求。对应数值“5”。
+                //BMAP_STATUS_PERMISSION_DENIED    没有权限。对应数值“6”。(自 1.1 新增)
+                //BMAP_STATUS_SERVICE_UNAVAILABLE    服务不可用。对应数值“7”。(自 1.1 新增)
+                //BMAP_STATUS_TIMEOUT    超时。对应数值“8”。(自 1.1 新增)
+                var geolocation = new BMap.Geolocation();
+                geolocation.getCurrentPosition(function(r) {
+                    if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+                        var mk = new BMap.Marker(r.point);
+                        map.addOverlay(mk);
+                        map.panTo(r.point);
+                        console.log('您的位置：' + r.point.lng + ',' + r.point.lat);
+                    } else {
+                        console.log('failed' + this.getStatus());
+                    }
+                }, {
+                    enableHighAccuracy: true
+                })
+            },
+            // 根据坐标获取地址   
+            geocoder: function Geocoder(point) {
+                var gc = new BMap.Geocoder();
+                gc.getLocation(point, function(rs) {
+                    var addComp = rs.addressComponents;
+                    document.getElementById('address').setAttribute('value', addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+                });
+            },
+
+/*     提供的覆盖物 可以使用map.addOverlay方法向地图添加覆盖物，使用map.removeOverlay方法移除覆盖物，
+覆盖物         类名            说明
+抽象基类    Overlay         所有的覆盖物均继承此类的方法
+点          Marker          表示地图上的点，可自定义标注的图标
+文本        Label           表示地图上的文本标注，您可以自定义标注的文本内容
+折线        Polyline        表示地图上的折线
+多边形      Polygon        表示地图上的多边形。多边形类似于闭合的折线，另外您也可以为其添加填充颜色
+圆          Circle          表示地图上的圆
+地面叠加层  GoundOverlay    表示叠加在地图上的图片，图片的链接、大小、位置等属性可以自定义
+海量点      PointCollection 针对点的数量很大的情况，可以使用海量点进行展示
+自定义覆盖物 自定义         支持通过继承覆盖物基类Overlay，自定义覆盖物
+信息窗口    InfoWindow      信息窗口也是一种特殊的覆盖物，它可以展示更为丰富的文字和多媒体信息。注意：同一时刻只能有一个信息窗口在地图上打开*/
+
+            markerTest: function(map) {
+                //　新坐标
+                map.clearOverlays();
+                var pointNew = new BMap.Point(114.430333, 30.459583);
+                var marker = new BMap.Marker(pointNew); // 创建标注
+                map.addOverlay(marker); // 将标注添加到地图中
+                map.panTo(pointNew);
+                marker.enableDragging(); // 可以拖动  
+                //创建信息窗口  
+                var infoWindow = new BMap.InfoWindow("这就是您公司的位置。<br/>如果不正确，请拖动红色图标");
+                //显示窗口  
+                marker.openInfoWindow(infoWindow);
+                //点击监听  
+                marker.addEventListener("click", function() {
+                    this.openInfoWindow(infoWindow);
+                });
+                //拖动监听  
+                marker.addEventListener("dragend", function(e) {
+                    //坐标赋值  
+                    document.getElementById('lng').setAttribute('value', e.point.lng);
+                    document.getElementById('lat').setAttribute('value', e.point.lat);
+                    myTest.geocoder(e.point);
+                });
+
+                // map.removeEventListener("click", functionA);
+                // map.addEventListener("click", functionA);   
+            },
+            // 自定义控件
+            ZoomControlX: ((function() {
+                // 定义一个控件类，即function    
+                function ZoomControl() {
+                    // 设置默认停靠位置和偏移量  
+                    // BMAP_ANCHOR_TOP_LEFT    表示控件定位于地图的左上角
+                    // BMAP_ANCHOR_TOP_RIGHT   表示控件定位于地图的右上角
+                    // BMAP_ANCHOR_BOTTOM_LEFT 表示控件定位于地图的左下角
+                    // BMAP_ANCHOR_BOTTOM_RIGHT    表示控件定位于地图的右下角
+                    this.defaultAnchor = BMAP_ANCHOR_TOP_LEFT;
+                    this.defaultOffset = new BMap.Size(10, 10);
+                }
+                // 通过JavaScript的prototype属性继承于BMap.Control   
+                ZoomControl.prototype = new BMap.Control();
+
+                // 自定义控件必须实现initialize方法，并且将控件的DOM元素返回   
+                // 在本方法中创建个div元素作为控件的容器，并将其添加到地图容器中   
+                ZoomControl.prototype.initialize = function(map) {
+                    // 创建一个DOM元素   
+                    var div = document.createElement("div");
+
+                    // 添加文字说明    
+                    div.appendChild(document.createTextNode("放大2级"));
+
+                    // 设置样式    
+                    div.style.cursor = "pointer";
+                    div.style.border = "1px solid green";
+                    div.style.backgroundColor = "white";
+
+                    // 绑定事件，点击一次放大两级    
+                    div.onclick = function(e) {
+                        map.zoomTo(map.getZoom() + 2);
+                    }
+
+                    // 添加DOM元素到地图中   
+                    map.getContainer().appendChild(div);
+
+                    // 将DOM元素返回  
+                    return div;
+                }
+                return ZoomControl;
+
+            })()),
+
+        };
+
+        initialFunc();
+
+        var styleJson = [
+          {
+                    "featureType": "water",
+                    "elementType": "all",
+                    "stylers": {
+                              "color": "#021019"
+                    }
+          },
+          {
+                    "featureType": "highway",
+                    "elementType": "geometry.fill",
+                    "stylers": {
+                              "color": "#000000"
+                    }
+          },
+          {
+                    "featureType": "highway",
+                    "elementType": "geometry.stroke",
+                    "stylers": {
+                              "color": "#147a92"
+                    }
+          },
+          {
+                    "featureType": "arterial",
+                    "elementType": "geometry.fill",
+                    "stylers": {
+                              "color": "#000000"
+                    }
+          },
+          {
+                    "featureType": "arterial",
+                    "elementType": "geometry.stroke",
+                    "stylers": {
+                              "color": "#0b3d51"
+                    }
+          },
+          {
+                    "featureType": "local",
+                    "elementType": "geometry",
+                    "stylers": {
+                              "color": "#000000"
+                    }
+          },
+          {
+                    "featureType": "land",
+                    "elementType": "all",
+                    "stylers": {
+                              "color": "#08304b"
+                    }
+          },
+          {
+                    "featureType": "railway",
+                    "elementType": "geometry.fill",
+                    "stylers": {
+                              "color": "#000000"
+                    }
+          },
+          {
+                    "featureType": "railway",
+                    "elementType": "geometry.stroke",
+                    "stylers": {
+                              "color": "#08304b"
+                    }
+          },
+          {
+                    "featureType": "subway",
+                    "elementType": "geometry",
+                    "stylers": {
+                              "lightness": -70
+                    }
+          },
+          {
+                    "featureType": "building",
+                    "elementType": "geometry.fill",
+                    "stylers": {
+                              "color": "#000000"
+                    }
+          },
+          {
+                    "featureType": "all",
+                    "elementType": "labels.text.fill",
+                    "stylers": {
+                              "color": "#857f7f"
+                    }
+          },
+          {
+                    "featureType": "all",
+                    "elementType": "labels.text.stroke",
+                    "stylers": {
+                              "color": "#000000"
+                    }
+          },
+          {
+                    "featureType": "building",
+                    "elementType": "geometry",
+                    "stylers": {
+                              "color": "#022338"
+                    }
+          },
+          {
+                    "featureType": "green",
+                    "elementType": "geometry",
+                    "stylers": {
+                              "color": "#062032"
+                    }
+          },
+          {
+                    "featureType": "boundary",
+                    "elementType": "all",
+                    "stylers": {
+                              "color": "#1e1c1c"
+                    }
+          },
+          {
+                    "featureType": "manmade",
+                    "elementType": "all",
+                    "stylers": {
+                              "color": "#022338"
+                    }
+          }
+]
+
+    </script>
+    </body>
+</html>
